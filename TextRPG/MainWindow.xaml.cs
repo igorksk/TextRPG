@@ -10,16 +10,17 @@ namespace TextRPG
 {
     public partial class MainWindow : Window
     {
-        private readonly Game game;
-        private static readonly Dictionary<int, string> dictionary = new()
+        private Game game;
+        private Dictionary<int, string> sceneBackgrounds = new Dictionary<int, string>
         {
             { 1, "Images/vault.jpg" },
             { 2, "Images/wasteland.jpg" },
             { 3, "Images/overseer.jpg" },
             { 4, "Images/raiders.jpg" },
-            { 5, "Images/gasstation.jpg" }
+            { 5, "Images/gasstation.jpg" },
+            { 6, "Images/trader.jpg" },
+            { 7, "Images/medic.jpg" }
         };
-        private readonly Dictionary<int, string> sceneBackgrounds = dictionary;
 
         public MainWindow()
         {
@@ -32,17 +33,18 @@ namespace TextRPG
         {
             var scene = game.GetCurrentScene();
             txtStory.Text = scene.Text;
+            txtMoney.Text = game.Money.ToString();
+            txtHealth.Text = game.Health.ToString();
             choicesPanel.Children.Clear();
 
-            // Обновление фонового изображения
-            if (sceneBackgrounds.TryGetValue(game.CurrentScene, out string? value))
+            if (sceneBackgrounds.ContainsKey(game.CurrentScene))
             {
-                BackgroundImage.Source = new BitmapImage(new Uri(value, UriKind.Relative));
+                BackgroundImage.Source = new BitmapImage(new Uri($"pack://siteoforigin:,,,/{sceneBackgrounds[game.CurrentScene]}"));
             }
 
             foreach (var choice in scene.Choices)
             {
-                Button btn = new()
+                Button btn = new Button
                 {
                     Content = choice.Key,
                     FontSize = 16,
