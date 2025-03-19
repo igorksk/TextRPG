@@ -18,8 +18,8 @@ namespace TextRPG
             { 3, "Images/engineer_room.jpeg" },  
             { 4, "Images/survivors_group.jpeg" },
             { 5, "Images/repair_station.jpeg" }, 
-            { 6, "Images/trader.jpg" },     // Раньше "trader.jpg" TO DO: trade_post.jpg
-            { 7, "Images/medic.jpg" }     // Раньше "medic.jpg" TO DO: med_station.jpg
+            { 6, "Images/trade_post.jpeg" }, 
+            { 7, "Images/med_post.jpeg" } 
         };
 
         public MainWindow()
