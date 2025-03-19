@@ -1,0 +1,26 @@
+# Ignore Visual Studio-specific files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.pdb
+
+# Ignore build outputs
+bin/
+obj/
+*.cache
+*.log
+
+# Ignore package files
+packages/
+*.nupkg
+project.lock.json
+project.assets.json
+
+# Ignore user-specific settings
+appsettings.*.json
+secrets.json
+
+# Ignore Rider/Je
