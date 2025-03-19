@@ -3,27 +3,31 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="Fallout: Текстовый Квест" Height="550" Width="750"
-        Background="#1E1E1E" Foreground="White">
+        Background="#1E1E1E" Foreground="White"
+        WindowStartupLocation="CenterScreen">
 
     <Grid>
-        <!-- Фон -->
+        <!-- Фоновое изображение -->
         <Image Name="BackgroundImage" Stretch="Fill" Panel.ZIndex="-1"/>
 
-        <!-- Панель статусов -->
+        <!-- Панель статусов (деньги и здоровье) -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
-            <TextBlock Text="💰 Крышки: " FontSize="16"/>
+            <TextBlock Text="💰 " FontSize="16"/>
             <TextBlock Name="txtMoney" Text="50" FontSize="16" FontWeight="Bold"/>
-            <TextBlock Text="   ❤️ Здоровье: " FontSize="16"/>
+            <TextBlock Text="   ❤️ " FontSize="16"/>
             <TextBlock Name="txtHealth" Text="100" FontSize="16" FontWeight="Bold"/>
         </StackPanel>
 
-        <!-- Основной контейнер -->
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="600">
-            <Border Background="#252526" Padding="20" CornerRadius="10">
+        <!-- Контейнер для текста и кнопок внизу экрана -->
+        <StackPanel VerticalAlignment="Bottom" Background="#252526DD" Margin="0,0,0,20">
+            <!-- Текстовая область -->
+            <Border Background="Transparent" Padding="10" CornerRadius="10">
                 <TextBlock Name="txtStory" TextWrapping="Wrap" FontSize="18"
-                           TextAlignment="Center" Foreground="White"/>
+                           Foreground="White" TextAlignment="Center"/>
             </Border>
-            <StackPanel Name="choicesPanel" Margin="20,20,0,0"/>
+
+            <!-- Контейнер кнопок выбора -->
+            <StackPanel Name="choicesPanel" Orientation="Vertical" Margin="10"/>
         </StackPanel>
     </Grid>
 </Window>

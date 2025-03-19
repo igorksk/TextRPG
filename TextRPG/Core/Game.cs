@@ -41,7 +41,7 @@ public class Game
             { 9, new Scene { Text = "Ты нашёл 20 крышек!",
                 Choices = new Dictionary<string, int> { { "Идти дальше", 10 } } } },
 
-            { 10, new Scene { Text = "Приключение только начинается...", Choices = new Dictionary<string, int>() } }
+            { 10, new Scene { Text = "Приключение только начинается...", Choices = [] } }
         };
 
         CurrentScene = 1;
@@ -51,9 +51,9 @@ public class Game
 
     public void MakeChoice(string choice)
     {
-        if (Scenes[CurrentScene].Choices.ContainsKey(choice))
+        if (Scenes[CurrentScene].Choices.TryGetValue(choice, out int value))
         {
-            CurrentScene = Scenes[CurrentScene].Choices[choice];
+            CurrentScene = value;
 
             if (choice == "Заплатить (20 крышек)") Money -= 20;
             if (choice == "Попытаться убежать (-30 здоровья)") Health -= 30;

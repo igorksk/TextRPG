@@ -10,8 +10,8 @@ namespace TextRPG
 {
     public partial class MainWindow : Window
     {
-        private Game game;
-        private Dictionary<int, string> sceneBackgrounds = new Dictionary<int, string>
+        private readonly Game game;
+        private readonly Dictionary<int, string> sceneBackgrounds = new()
         {
             { 1, "Images/vault.jpg" },
             { 2, "Images/wasteland.jpg" },
@@ -37,14 +37,14 @@ namespace TextRPG
             txtHealth.Text = game.Health.ToString();
             choicesPanel.Children.Clear();
 
-            if (sceneBackgrounds.ContainsKey(game.CurrentScene))
+            if (sceneBackgrounds.TryGetValue(game.CurrentScene, out string? value))
             {
-                BackgroundImage.Source = new BitmapImage(new Uri($"pack://siteoforigin:,,,/{sceneBackgrounds[game.CurrentScene]}"));
+                BackgroundImage.Source = new BitmapImage(new Uri($"pack://siteoforigin:,,,/{value}"));
             }
 
             foreach (var choice in scene.Choices)
             {
-                Button btn = new Button
+                Button btn = new()
                 {
                     Content = choice.Key,
                     FontSize = 16,
