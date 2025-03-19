@@ -13,13 +13,13 @@ namespace TextRPG
         private readonly Game game;
         private readonly Dictionary<int, string> sceneBackgrounds = new()
         {
-            { 1, "Images/vault.jpg" },
-            { 2, "Images/wasteland.jpg" },
-            { 3, "Images/overseer.jpg" },
-            { 4, "Images/raiders.jpg" },
-            { 5, "Images/gasstation.jpg" },
-            { 6, "Images/trader.jpg" },
-            { 7, "Images/medic.jpg" }
+            { 1, "Images/complex_hall.jpeg" },   
+            { 2, "Images/desert_ruins.jpeg" },   
+            { 3, "Images/engineer_room.jpeg" },  
+            { 4, "Images/survivors_group.jpeg" },
+            { 5, "Images/repair_station.jpeg" }, 
+            { 6, "Images/trader.jpg" },     // Раньше "trader.jpg" TO DO: trade_post.jpg
+            { 7, "Images/medic.jpg" }     // Раньше "medic.jpg" TO DO: med_station.jpg
         };
 
         public MainWindow()
