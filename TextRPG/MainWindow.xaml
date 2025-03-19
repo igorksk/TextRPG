@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="Текстовый Квест" Height="550" Width="750"
-        Background="#1E1E1E" Foreground="White"
+        Background="#121212" Foreground="White"
         WindowStartupLocation="CenterScreen">
 
     <Grid>
@@ -12,23 +12,30 @@
 
         <!-- Панель статусов (деньги и здоровье) -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
-            <TextBlock Text="💰 " FontSize="16"/>
-            <TextBlock Name="txtMoney" Text="50" FontSize="16" FontWeight="Bold"/>
-            <TextBlock Text="   ❤️ " FontSize="16"/>
-            <TextBlock Name="txtHealth" Text="100" FontSize="16" FontWeight="Bold"/>
+            <TextBlock Text="💰 " FontSize="16" Foreground="#FFD700"/>
+            <TextBlock Name="txtMoney" Text="50" FontSize="16" FontWeight="Bold" Foreground="#FFD700"/>
+            <TextBlock Text="   ❤️ " FontSize="16" Foreground="#50C878"/>
+            <TextBlock Name="txtHealth" Text="100" FontSize="16" FontWeight="Bold" Foreground="#50C878"/>
         </StackPanel>
 
         <!-- Контейнер для текста и кнопок внизу экрана -->
-        <StackPanel VerticalAlignment="Bottom" Background="#252526DD" Margin="0,0,0,20">
+        <StackPanel VerticalAlignment="Bottom" Background="#1E1E1ECC" Margin="10" 
+                    Width="700" HorizontalAlignment="Center">
+
             <!-- Текстовая область -->
-            <Border Background="Transparent" Padding="10" CornerRadius="10">
+            <Border Background="Transparent" Padding="10">
                 <TextBlock Name="txtStory" TextWrapping="Wrap" FontSize="18"
-                           Foreground="White" TextAlignment="Center"/>
+                           Foreground="#90EE90" TextAlignment="Center"/>
             </Border>
 
             <!-- Контейнер кнопок выбора -->
-            <StackPanel Name="choicesPanel" Orientation="Vertical" Margin="10"/>
+            <StackPanel Name="choicesPanel" Orientation="Vertical" HorizontalAlignment="Center" Margin="10">
+                <!-- Кнопка выбора (шаблон) -->
+                <Button Content="Пример выбора" Padding="10,5" Margin="5" Width="250"
+                        Background="#333" Foreground="#FFD700"
+                        FontSize="16" FontWeight="Bold" BorderBrush="#FFD700"
+                        Cursor="Hand"/>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </Window>
-
