@@ -1,4 +1,5 @@
 ﻿using NAudio.Wave;
+using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,17 +12,6 @@ namespace TextRPG
     public partial class MainWindow : Window
     {
         private readonly Game game;
-        private readonly Dictionary<int, string> sceneBackgrounds = new()
-        {
-            { 1, "Images/complex_hall.jpeg" },   
-            { 2, "Images/desert_ruins.jpeg" },   
-            { 3, "Images/engineer_room.jpeg" },  
-            { 4, "Images/survivors_group.jpeg" },
-            { 5, "Images/repair_station.jpeg" }, 
-            { 6, "Images/trade_post.jpeg" }, 
-            { 7, "Images/med_post.jpeg" } 
-        };
-
         private WaveOutEvent? outputDevice;
         private AudioFileReader? audioFile;
 
@@ -30,43 +20,84 @@ namespace TextRPG
             InitializeComponent();
             game = new Game();
             PlayBackgroundMusic("Sounds/wasteland.mp3");
-            UpdateScene();
+            UpdateUI();
         }
 
-        private void UpdateScene()
+        private void UpdateUI()
         {
-            var scene = game.GetCurrentScene();
-            txtStory.Text = scene.Text;
+            var currentLocation = game.GetCurrentLocation();
+            var currentScene = game.GetCurrentScene();
+
+            // Обновляем информацию о локации
+            txtLocationName.Text = currentLocation.Name;
+            txtLocationDescription.Text = currentLocation.Description;
+            txtStory.Text = currentScene.Text;
+
+            // Обновляем статусы
             txtMoney.Text = game.Money.ToString();
             txtHealth.Text = game.Health.ToString();
-            choicesPanel.Children.Clear();
 
-            if (sceneBackgrounds.TryGetValue(game.CurrentScene, out string? value))
+            // Обновляем фоновое изображение
+            if (!string.IsNullOrEmpty(currentLocation.BackgroundImage))
             {
-                BackgroundImage.Source = new BitmapImage(new Uri($"pack://siteoforigin:,,,/{value}"));
+                BackgroundImage.Source = new BitmapImage(new Uri($"pack://siteoforigin:,,,/{currentLocation.BackgroundImage}"));
             }
 
-            foreach (var choice in scene.Choices)
+            // Очищаем и обновляем кнопки выбора
+            choicesPanel.Children.Clear();
+
+            if (game.CurrentEventSceneId.HasValue)
             {
-                Button btn = new()
+                // Если есть активное событие, показываем кнопки выбора для события
+                foreach (var choice in currentScene.Choices)
                 {
-                    Content = choice.Key,
-                    FontSize = 16,
-                    Padding = new Thickness(10),
-                    Background = new SolidColorBrush(Color.FromRgb(34, 150, 243)),
-                    Foreground = Brushes.White,
-                    Margin = new Thickness(5),
-                    BorderThickness = new Thickness(0),
-                    Cursor = System.Windows.Input.Cursors.Hand
-                };
+                    Button btn = new()
+                    {
+                        Content = choice.Key,
+                        FontSize = 16,
+                        Padding = new Thickness(10),
+                        Background = new SolidColorBrush(Color.FromRgb(34, 150, 243)),
+                        Foreground = Brushes.White,
+                        Margin = new Thickness(5),
+                        BorderThickness = new Thickness(0),
+                        Cursor = System.Windows.Input.Cursors.Hand
+                    };
 
-                btn.Click += (s, e) =>
+                    btn.Click += (s, e) =>
+                    {
+                        game.MakeChoice(choice.Key);
+                        UpdateUI();
+                    };
+
+                    choicesPanel.Children.Add(btn);
+                }
+            }
+            else
+            {
+                // Если нет активного события, показываем кнопки для перемещения между локациями
+                foreach (var locationId in currentLocation.ConnectedLocations)
                 {
-                    game.MakeChoice(choice.Key);
-                    UpdateScene();
-                };
+                    var location = game.Locations[locationId];
+                    Button btn = new()
+                    {
+                        Content = $"Перейти в {location.Name}",
+                        FontSize = 16,
+                        Padding = new Thickness(10),
+                        Background = new SolidColorBrush(Color.FromRgb(34, 150, 243)),
+                        Foreground = Brushes.White,
+                        Margin = new Thickness(5),
+                        BorderThickness = new Thickness(0),
+                        Cursor = System.Windows.Input.Cursors.Hand
+                    };
 
-                choicesPanel.Children.Add(btn);
+                    btn.Click += (s, e) =>
+                    {
+                        game.TravelToLocation(locationId);
+                        UpdateUI();
+                    };
+
+                    choicesPanel.Children.Add(btn);
+                }
             }
         }
 

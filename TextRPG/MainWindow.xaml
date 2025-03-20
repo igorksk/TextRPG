@@ -18,11 +18,26 @@
             <TextBlock Name="txtHealth" Text="100" FontSize="16" FontWeight="Bold" Foreground="#50C878"/>
         </StackPanel>
 
+        <!-- Название текущей локации -->
+        <TextBlock Name="txtLocationName" 
+                   FontSize="24" 
+                   FontWeight="Bold" 
+                   Foreground="#FFD700" 
+                   HorizontalAlignment="Center" 
+                   VerticalAlignment="Top" 
+                   Margin="0,50,0,0"/>
+
         <!-- Контейнер для текста и кнопок внизу экрана -->
         <StackPanel VerticalAlignment="Bottom" Background="#1E1E1ECC" Margin="10" 
                     Width="700" HorizontalAlignment="Center">
 
-            <!-- Текстовая область -->
+            <!-- Описание локации -->
+            <Border Background="Transparent" Padding="10">
+                <TextBlock Name="txtLocationDescription" TextWrapping="Wrap" FontSize="18"
+                           Foreground="#90EE90" TextAlignment="Center"/>
+            </Border>
+
+            <!-- Текст сцены -->
             <Border Background="Transparent" Padding="10">
                 <TextBlock Name="txtStory" TextWrapping="Wrap" FontSize="18"
                            Foreground="#90EE90" TextAlignment="Center"/>
@@ -30,11 +45,7 @@
 
             <!-- Контейнер кнопок выбора -->
             <StackPanel Name="choicesPanel" Orientation="Vertical" HorizontalAlignment="Center" Margin="10">
-                <!-- Кнопка выбора (шаблон) -->
-                <Button Content="Пример выбора" Padding="10,5" Margin="5" Width="250"
-                        Background="#333" Foreground="#FFD700"
-                        FontSize="16" FontWeight="Bold" BorderBrush="#FFD700"
-                        Cursor="Hand"/>
+                <!-- Кнопки будут добавляться динамически -->
             </StackPanel>
         </StackPanel>
     </Grid>
