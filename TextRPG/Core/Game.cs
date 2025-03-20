@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+
+using System.Collections.Generic;
 
 namespace TextRPG.Core;
 
@@ -19,6 +21,10 @@ public class Game
     {
         IsInMainMenu = true;
         ShouldExit = false;
+        Locations = new Dictionary<string, Location>();
+        Scenes = new Dictionary<int, Scene>();
+        ShownScenes = new HashSet<int>();
+        CurrentLocationId = string.Empty;
         InitializeMainMenu();
     }
 
@@ -108,7 +114,7 @@ public class Game
         CurrentEventSceneId = Locations["complex"].EventSceneId;
     }
 
-    public Location GetCurrentLocation() => IsInMainMenu ? null : Locations[CurrentLocationId];
+    public Location? GetCurrentLocation() => IsInMainMenu ? null : Locations[CurrentLocationId];
     
     public Scene GetCurrentScene()
     {
@@ -122,7 +128,9 @@ public class Game
 
     public bool CanTravelTo(string locationId)
     {
-        return !IsInMainMenu && GetCurrentLocation().CanTravelTo(locationId);
+        if (IsInMainMenu) return false;
+        var currentLocation = GetCurrentLocation();
+        return currentLocation != null && currentLocation.CanTravelTo(locationId);
     }
 
     public void TravelToLocation(string locationId)

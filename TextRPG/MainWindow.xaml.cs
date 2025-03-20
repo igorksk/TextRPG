@@ -54,13 +54,13 @@ namespace TextRPG
             }
             else
             {
-                txtLocationName.Text = currentLocation.Name;
+                txtLocationName.Text = currentLocation!.Name;
                 txtLocationDescription.Text = currentLocation.Description;
 
                 // Обновляем фоновое изображение
                 try
                 {
-                    backgroundImage.ImageSource = new BitmapImage(new Uri(currentLocation.BackgroundImage, UriKind.Relative));
+                    backgroundImage.ImageSource = new BitmapImage(new Uri(currentLocation.ImagePath, UriKind.Relative));
                 }
                 catch
                 {

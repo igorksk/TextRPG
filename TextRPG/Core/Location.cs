@@ -1,26 +1,28 @@
+#nullable enable
+
 using System.Collections.Generic;
 
 namespace TextRPG.Core
 {
     public class Location
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public string BackgroundImage { get; set; }
-        public List<string> ConnectedLocations { get; set; }
-        public int? EventSceneId { get; set; }
+        public string Id { get; }
+        public string Name { get; }
+        public string Description { get; }
+        public string ImagePath { get; }
+        public int? EventSceneId { get; }
+        public List<string> ConnectedLocations { get; }
         public bool EventShown { get; set; }
 
-        public Location(string id, string name, string description, string backgroundImage, int? eventSceneId = null)
+        public Location(string id, string name, string description, string imagePath, int? eventSceneId)
         {
             Id = id;
             Name = name;
             Description = description;
-            BackgroundImage = backgroundImage;
+            ImagePath = imagePath;
             EventSceneId = eventSceneId;
             EventShown = false;
-            ConnectedLocations = [];
+            ConnectedLocations = new List<string>();
         }
 
         public void AddConnection(string locationId)
