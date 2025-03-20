@@ -12,50 +12,78 @@ public class Game
     public int Health { get; private set; }
     public HashSet<int> ShownScenes { get; private set; }
     public bool IsChoosingLocation { get; private set; }
+    public bool IsInMainMenu { get; private set; }
+    public bool ShouldExit { get; private set; }
 
     public Game()
     {
-        Money = 50;
-        Health = 100;
-        ShownScenes = [];
-        IsChoosingLocation = true;
+        IsInMainMenu = true;
+        ShouldExit = false;
+        InitializeMainMenu();
+    }
 
-        // Инициализация сцен
+    private void InitializeMainMenu()
+    {
         Scenes = new Dictionary<int, Scene>
         {
-            { 1, new Scene { Text = "Ты — житель Комплекса 17. Система фильтрации воздуха выходит из строя, и тебе нужно найти запасные детали. Ты решаешь обратиться к инженеру комплекса.",
-                Choices = new Dictionary<string, int> { { "Поговорить с инженером", 2 } } } },
-
-            { 2, new Scene { Text = "Инженер объясняет, что нужны специальные детали, которые можно найти только на поверхности. Он даёт тебе 50 кредитов и карту местности.",
-                Choices = new Dictionary<string, int> { { "Подняться на поверхность", 3 } } } },
-
-            { 3, new Scene { Text = "Ты выбрался наружу. Вокруг заброшенные здания и пустынная дорога. Вдалеке виднеется старая ремонтная станция и разрушенный город.",
-                Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } } },
-
-            { 4, new Scene { Text = "На пути в город ты встречаешь группу выживших. Они требуют 20 кредитов за проход. Что делать?",
+            { -1, new Scene { Text = "Текстовая RPG\n\nДобро пожаловать в игру!\nВыберите действие:",
                 Choices = new Dictionary<string, int> { 
-                    { "Заплатить (20 кредитов)", 5 }, 
-                    { "Попытаться убежать (-30 здоровья)", 6 } 
+                    { "Новая игра", -2 },
+                    { "Выход", -3 }
                 } } },
-
-            { 5, new Scene { Text = "Ты заплатил за проход. Выжившие пропустили тебя без лишних проблем. В городе ты находишь несколько полезных деталей.",
-                Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } } },
-
-            { 6, new Scene { Text = "Ты получил несколько ранений, но сумел сбежать. В городе ты находишь несколько полезных деталей.",
-                Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } } },
-
-            { 7, new Scene { Text = "На ремонтной станции ты встречаешь старого механика. Он предлагает тебе сделку.",
-                Choices = new Dictionary<string, int> { 
-                    { "Купить медпак (30 кредитов, +50 здоровья)", 8 }, 
-                    { "Обыскать станцию", 9 } 
-                } } },
-
-            { 8, new Scene { Text = "Ты купил медпак и восстановил здоровье. Механик также даёт тебе подсказку о местоположении нужных деталей.",
-                Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } } },
-
-            { 9, new Scene { Text = "Ты нашёл 20 кредитов среди обломков. Механик, заметив твои действия, предлагает купить у него информацию о деталях.",
-                Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } } }
+            
+            // Добавляем сцену выбора локации
+            { 0, new Scene { Text = "Выберите следующую локацию:",
+                Choices = new Dictionary<string, int>() } }
         };
+        CurrentEventSceneId = -1;
+    }
+
+    private void StartNewGame()
+    {
+        Money = 50;
+        Health = 100;
+        ShownScenes = new HashSet<int>();
+        IsChoosingLocation = true;
+        IsInMainMenu = false;
+
+        // Добавляем сцену выбора локации к существующим сценам
+        Scenes[0] = new Scene { Text = "Выберите следующую локацию:",
+            Choices = new Dictionary<string, int>() };
+
+        // Добавляем остальные сцены
+        Scenes[1] = new Scene { Text = "Ты — житель Комплекса 17. Система фильтрации воздуха выходит из строя, и тебе нужно найти запасные детали. Ты решаешь обратиться к инженеру комплекса.",
+            Choices = new Dictionary<string, int> { { "Поговорить с инженером", 2 } } };
+
+        Scenes[2] = new Scene { Text = "Инженер объясняет, что нужны специальные детали, которые можно найти только на поверхности. Он даёт тебе 50 кредитов и карту местности.",
+            Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } };
+
+        Scenes[3] = new Scene { Text = "Ты выбрался наружу. Вокруг заброшенные здания и пустынная дорога. Вдалеке виднеется старая ремонтная станция и разрушенный город.",
+            Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } };
+
+        Scenes[4] = new Scene { Text = "На пути в город ты встречаешь группу выживших. Они требуют 20 кредитов за проход. Что делать?",
+            Choices = new Dictionary<string, int> { 
+                { "Заплатить (20 кредитов)", 5 }, 
+                { "Попытаться убежать (-30 здоровья)", 6 } 
+            } };
+
+        Scenes[5] = new Scene { Text = "Ты заплатил за проход. Выжившие пропустили тебя без лишних проблем. В городе ты находишь несколько полезных деталей.",
+            Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } };
+
+        Scenes[6] = new Scene { Text = "Ты получил несколько ранений, но сумел сбежать. В городе ты находишь несколько полезных деталей.",
+            Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } };
+
+        Scenes[7] = new Scene { Text = "На ремонтной станции ты встречаешь старого механика. Он предлагает тебе сделку.",
+            Choices = new Dictionary<string, int> { 
+                { "Купить медпак (30 кредитов, +50 здоровья)", 8 }, 
+                { "Обыскать станцию", 9 } 
+            } };
+
+        Scenes[8] = new Scene { Text = "Ты купил медпак и восстановил здоровье. Механик также даёт тебе подсказку о местоположении нужных деталей.",
+            Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } };
+
+        Scenes[9] = new Scene { Text = "Ты нашёл 20 кредитов среди обломков. Механик, заметив твои действия, предлагает купить у него информацию о деталях.",
+            Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } };
 
         // Инициализация локаций
         Locations = new Dictionary<string, Location>
@@ -80,12 +108,21 @@ public class Game
         CurrentEventSceneId = Locations["complex"].EventSceneId;
     }
 
-    public Location GetCurrentLocation() => Locations[CurrentLocationId];
-    public Scene GetCurrentScene() => Scenes[CurrentEventSceneId ?? 3];
+    public Location GetCurrentLocation() => IsInMainMenu ? null : Locations[CurrentLocationId];
+    
+    public Scene GetCurrentScene()
+    {
+        if (CurrentEventSceneId.HasValue)
+        {
+            return Scenes[CurrentEventSceneId.Value];
+        }
+        // Если нет текущей сцены, возвращаем сцену выбора локации
+        return Scenes[0];
+    }
 
     public bool CanTravelTo(string locationId)
     {
-        return GetCurrentLocation().CanTravelTo(locationId);
+        return !IsInMainMenu && GetCurrentLocation().CanTravelTo(locationId);
     }
 
     public void TravelToLocation(string locationId)
@@ -115,6 +152,19 @@ public class Game
         var currentScene = GetCurrentScene();
         if (currentScene.Choices.TryGetValue(choice, out int nextScene))
         {
+            if (IsInMainMenu)
+            {
+                switch (nextScene)
+                {
+                    case -2: // Новая игра
+                        StartNewGame();
+                        return;
+                    case -3: // Выход
+                        ShouldExit = true;
+                        return;
+                }
+            }
+
             // Обработка последствий выбора
             if (choice == "Заплатить (20 кредитов)") Money -= 20;
             if (choice == "Попытаться убежать (-30 здоровья)") Health -= 30;
@@ -126,7 +176,7 @@ public class Game
             if (choice == "Обыскать станцию") Money += 20;
 
             // Если это выбор локации или последний выбор в сцене
-            if (nextScene == 0 || !Scenes.ContainsKey(nextScene))
+            if (nextScene == 0)
             {
                 // Отмечаем, что текущая сцена была показана
                 if (CurrentEventSceneId.HasValue)
