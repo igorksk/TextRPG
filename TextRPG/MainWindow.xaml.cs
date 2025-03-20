@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using NAudio.Wave;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -22,10 +22,14 @@ namespace TextRPG
             { 7, "Images/med_post.jpeg" } 
         };
 
+        private WaveOutEvent? outputDevice;
+        private AudioFileReader? audioFile;
+
         public MainWindow()
         {
             InitializeComponent();
             game = new Game();
+            PlayBackgroundMusic("Sounds/wasteland.mp3");
             UpdateScene();
         }
 
@@ -64,6 +68,40 @@ namespace TextRPG
 
                 choicesPanel.Children.Add(btn);
             }
+        }
+
+        private void PlayBackgroundMusic(string filePath)
+        {
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    MessageBox.Show($"Файл {filePath} не найден!");
+                    return;
+                }
+
+                outputDevice = new WaveOutEvent();
+                audioFile = new AudioFileReader(filePath);
+                outputDevice.Init(audioFile);
+                outputDevice.Volume = 0.1f;
+                outputDevice.Play();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка воспроизведения: {ex.Message}");
+            }
+        }
+
+        private void StopMusic()
+        {
+            outputDevice?.Stop();
+            outputDevice?.Dispose();
+            audioFile?.Dispose();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            StopMusic();
         }
     }
 }
