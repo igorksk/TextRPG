@@ -92,6 +92,17 @@ public class Game
 
     private void InitializeScenes()
     {
+        // Главное меню
+        Scenes.Add(-1, new Scene
+        {
+            Text = "Текстовая RPG\n\nДобро пожаловать в игру!\nВыберите действие:",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Новая игра", (-2, 0, 0) },
+                { "Выход", (-3, 0, 0) }
+            }
+        });
+
         // Сцена выбора локации
         Scenes.Add(0, new Scene
         {
@@ -301,8 +312,32 @@ public class Game
     public void MakeChoice(string choice)
     {
         var currentScene = GetCurrentScene();
+        
+        if (IsChoosingLocation)
+        {
+            // Если мы в режиме выбора локации, обрабатываем выбор локации
+            if (Locations.TryGetValue(choice, out var location))
+            {
+                TravelToLocation(choice);
+            }
+            return;
+        }
+
         if (currentScene.Choices.TryGetValue(choice, out var result))
         {
+            if (IsInMainMenu)
+            {
+                switch (result.nextSceneId)
+                {
+                    case -2: // Новая игра
+                        StartNewGame();
+                        return;
+                    case -3: // Выход
+                        ShouldExit = true;
+                        return;
+                }
+            }
+
             Health = Math.Max(0, Math.Min(100, Health + result.healthChange));
             Money += result.moneyChange;
 
@@ -367,6 +402,35 @@ public class Game
 
     public Scene GetCurrentScene()
     {
+        if (IsInMainMenu)
+        {
+            return Scenes[-1];
+        }
+
+        if (IsChoosingLocation)
+        {
+            var currentLocation = GetCurrentLocation();
+            if (currentLocation != null)
+            {
+                var availableLocations = currentLocation.ConnectedLocations
+                    .Where(id => Locations.ContainsKey(id))
+                    .Select(id => Locations[id])
+                    .ToList();
+
+                var choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>();
+                foreach (var location in availableLocations)
+                {
+                    choices[location.Name] = (0, 0, 0);
+                }
+
+                return new Scene
+                {
+                    Text = $"Выберите локацию для путешествия:\n\n{string.Join("\n", availableLocations.Select(l => $"- {l.Name}"))}",
+                    Choices = choices
+                };
+            }
+        }
+
         return Scenes.TryGetValue(CurrentEventSceneId, out var scene) ? scene : Scenes[0];
     }
 
