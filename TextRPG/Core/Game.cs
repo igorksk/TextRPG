@@ -82,6 +82,14 @@ public class Game
                 }
             }
 
+            // Проверяем, достаточно ли денег для действия
+            if (result.moneyChange < 0 && Money + result.moneyChange < 0)
+            {
+                // Если денег не хватает, показываем сообщение об ошибке
+                CurrentEventSceneId = -6; // ID сцены с сообщением об ошибке
+                return;
+            }
+
             Health = Math.Max(0, Math.Min(100, Health + result.healthChange));
             Money += result.moneyChange;
 

@@ -241,6 +241,17 @@ public class SceneManager
                 { "Убежать", (0, -10, 0) }
             }
         });
+
+        // Сцена с сообщением об ошибке
+        Scenes.Add(-6, new Scene
+        {
+            Text = "У вас недостаточно денег для этого действия.\n\n" +
+                  "Выберите другое действие или вернитесь назад.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Вернуться назад", (0, 0, 0) }
+            }
+        });
     }
 
     public Scene GetMainMenuScene() => Scenes[-1];
