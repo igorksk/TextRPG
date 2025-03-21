@@ -1,203 +1,377 @@
 ﻿#nullable enable
 
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TextRPG.Core;
 
 public class Game
 {
-    public Dictionary<string, Location> Locations { get; private set; }
-    public Dictionary<int, Scene> Scenes { get; private set; }
-    public string CurrentLocationId { get; private set; }
-    public int? CurrentEventSceneId { get; private set; }
-    public int Money { get; private set; }
-    public int Health { get; private set; }
-    public HashSet<int> ShownScenes { get; private set; }
-    public bool IsChoosingLocation { get; private set; }
     public bool IsInMainMenu { get; private set; }
     public bool ShouldExit { get; private set; }
+    public bool IsChoosingLocation { get; private set; }
+    public int Health { get; private set; }
+    public int Money { get; private set; }
+    public string CurrentLocationId { get; private set; } = string.Empty;
+    public int CurrentEventSceneId { get; private set; }
+    public Dictionary<string, Location> Locations { get; }
+    public Dictionary<int, Scene> Scenes { get; }
+    private HashSet<int> ShownScenes { get; }
 
     public Game()
     {
         IsInMainMenu = true;
         ShouldExit = false;
+        IsChoosingLocation = false;
+        Health = 100;
+        Money = 0;
+        CurrentLocationId = string.Empty;
+        CurrentEventSceneId = 0;
         Locations = new Dictionary<string, Location>();
         Scenes = new Dictionary<int, Scene>();
         ShownScenes = new HashSet<int>();
-        CurrentLocationId = string.Empty;
-        InitializeMainMenu();
+
+        InitializeLocations();
+        InitializeScenes();
     }
 
-    private void InitializeMainMenu()
+    private void InitializeLocations()
     {
-        Scenes = new Dictionary<int, Scene>
+        // Подземный комплекс
+        var complex17 = new Location("complex17", "Комплекс 17", 
+            "Подземный бункер, построенный для защиты от ядерной войны. Теперь здесь находится ваша база.", 
+            "Images/complex_hall.jpeg");
+        complex17.AddConnection("surface");
+
+        // Поверхность
+        var surface = new Location("surface", "Поверхность", 
+            "Пустошь, оставшаяся после ядерной войны. Радиация и мутанты сделали её опасной.", 
+            "Images/desert_ruins.jpeg");
+        surface.AddConnection("complex17");
+        surface.AddConnection("lasvegas");
+        surface.AddConnection("sanfrancisco");
+        surface.AddConnection("repair_station");
+        surface.AddConnection("trading_post");
+        surface.AddConnection("bunker42");
+
+        // Города
+        var lasVegas = new Location("lasvegas", "Лас-Вегас", 
+            "Оазис в пустоши, город греха и развлечений. Здесь можно найти всё, что душе угодно.", 
+            "Images/lasvegas.jpeg");
+        lasVegas.AddConnection("surface");
+
+        var sanFrancisco = new Location("sanfrancisco", "Сан-Франциско", 
+            "Город, переживший ядерную войну. Здесь процветает торговля и технологические инновации.", 
+            "Images/sanfrancisco.jpeg");
+        sanFrancisco.AddConnection("surface");
+
+        // Технические локации
+        var repairStation = new Location("repair_station", "Ремонтная станция", 
+            "Заброшенная станция технического обслуживания. Здесь можно починить снаряжение и купить запчасти.", 
+            "Images/repair_station.jpeg");
+        repairStation.AddConnection("surface");
+
+        var tradingPost = new Location("trading_post", "Торговая застава", 
+            "Караванная стоянка, где можно купить и продать товары. Здесь всегда много путешественников.", 
+            "Images/trading_post.jpeg");
+        tradingPost.AddConnection("surface");
+
+        var bunker42 = new Location("bunker42", "Бункер 42", 
+            "Заброшенный подземный бункер. Говорят, здесь проводились секретные эксперименты.", 
+            "Images/bunker42.jpeg");
+        bunker42.AddConnection("surface");
+
+        Locations.Add(complex17.Id, complex17);
+        Locations.Add(surface.Id, surface);
+        Locations.Add(lasVegas.Id, lasVegas);
+        Locations.Add(sanFrancisco.Id, sanFrancisco);
+        Locations.Add(repairStation.Id, repairStation);
+        Locations.Add(tradingPost.Id, tradingPost);
+        Locations.Add(bunker42.Id, bunker42);
+    }
+
+    private void InitializeScenes()
+    {
+        // Сцена выбора локации
+        Scenes.Add(0, new Scene
         {
-            { -1, new Scene { Text = "Текстовая RPG\n\nДобро пожаловать в игру!\nВыберите действие:",
-                Choices = new Dictionary<string, int> { 
-                    { "Новая игра", -2 },
-                    { "Выход", -3 }
-                } } },
-            
-            // Добавляем сцену выбора локации
-            { 0, new Scene { Text = "Выберите следующую локацию:",
-                Choices = new Dictionary<string, int>() } }
-        };
-        CurrentEventSceneId = -1;
+            Text = "Куда вы хотите отправиться?",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Выбрать локацию", (0, 0, 0) }
+            }
+        });
+
+        // Сцены для Лас-Вегаса
+        Scenes.Add(1, new Scene
+        {
+            Text = "Вы входите в Лас-Вегас. Город сияет неоновыми огнями, а вокруг слышны звуки музыки и смеха. " +
+                  "Здесь можно найти всё, что душе угодно - от редких предметов до опасных заданий.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Посетить казино", (2, -10, 50) },
+                { "Найти работу", (3, -5, 30) },
+                { "Вернуться на поверхность", (0, 0, 0) }
+            }
+        });
+
+        Scenes.Add(2, new Scene
+        {
+            Text = "В казино вы играете в рулетку и выигрываете немного денег. " +
+                  "Но азарт заставляет вас играть дальше, и вы теряете часть здоровья.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Продолжить играть", (2, -15, 100) },
+                { "Уйти", (0, 0, 0) }
+            }
+        });
+
+        Scenes.Add(3, new Scene
+        {
+            Text = "Вы находите работу охранника в одном из казино. " +
+                  "Работа опасная, но хорошо оплачивается.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Принять работу", (4, -20, 100) },
+                { "Отказаться", (0, 0, 0) }
+            }
+        });
+
+        Scenes.Add(4, new Scene
+        {
+            Text = "Во время работы вы сталкиваетесь с вооружёнными грабителями. " +
+                  "Вам удаётся отбиться, но вы получаете ранения.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Получить бонус", (0, -10, 50) },
+                { "Уйти с работы", (0, 0, 0) }
+            }
+        });
+
+        // Сцены для Сан-Франциско
+        Scenes.Add(5, new Scene
+        {
+            Text = "Сан-Франциско встретил вас шумом рынка и запахом моря. " +
+                  "Здесь можно найти редкие технологии и ценные артефакты.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Исследовать рынок", (6, 0, -20) },
+                { "Найти контакты", (7, -5, 30) },
+                { "Вернуться на поверхность", (0, 0, 0) }
+            }
+        });
+
+        Scenes.Add(6, new Scene
+        {
+            Text = "На рынке вы находите редкие запчасти и технологии. " +
+                  "Торговец предлагает выгодную сделку.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Купить запчасти", (0, 0, -50) },
+                { "Продать находки", (0, 0, 100) }
+            }
+        });
+
+        Scenes.Add(7, new Scene
+        {
+            Text = "Вы находите контакты местных торговцев. " +
+                  "Они предлагают вам участие в прибыльной сделке.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Согласиться", (8, -15, 150) },
+                { "Отказаться", (0, 0, 0) }
+            }
+        });
+
+        Scenes.Add(8, new Scene
+        {
+            Text = "Сделка оказывается опасной, но прибыльной. " +
+                  "Вы получаете хорошую награду, но теряете часть здоровья.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Получить награду", (0, -10, 100) },
+                { "Уйти", (0, 0, 0) }
+            }
+        });
+
+        // Сцены для ремонтной станции
+        Scenes.Add(9, new Scene
+        {
+            Text = "Ремонтная станция выглядит заброшенной, но внутри вы находите работающее оборудование. " +
+                  "Механик предлагает вам свои услуги.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Починить снаряжение", (10, 0, -30) },
+                { "Купить запчасти", (11, 0, -20) },
+                { "Уйти", (0, 0, 0) }
+            }
+        });
+
+        Scenes.Add(10, new Scene
+        {
+            Text = "Механик чинит ваше снаряжение. " +
+                  "Теперь оно в отличном состоянии.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Поблагодарить", (0, 0, 0) }
+            }
+        });
+
+        Scenes.Add(11, new Scene
+        {
+            Text = "Вы покупаете полезные запчасти. " +
+                  "Они могут пригодиться в будущем.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Уйти", (0, 0, 0) }
+            }
+        });
+
+        // Сцены для торговой заставы
+        Scenes.Add(12, new Scene
+        {
+            Text = "На торговой заставе кипит жизнь. " +
+                  "Здесь можно найти редкие товары и полезную информацию.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Торговать", (13, 0, 0) },
+                { "Собрать информацию", (14, 0, 0) },
+                { "Уйти", (0, 0, 0) }
+            }
+        });
+
+        Scenes.Add(13, new Scene
+        {
+            Text = "Вы успешно торгуете с караванщиками. " +
+                  "Получаете хорошую прибыль.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Продолжить", (13, 0, 50) },
+                { "Уйти", (0, 0, 0) }
+            }
+        });
+
+        Scenes.Add(14, new Scene
+        {
+            Text = "Вы узнаёте о ценных находках в окрестностях. " +
+                  "Эта информация может пригодиться.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Заплатить за подробности", (0, 0, -20) },
+                { "Уйти", (0, 0, 0) }
+            }
+        });
+
+        // Сцены для Бункера 42
+        Scenes.Add(15, new Scene
+        {
+            Text = "Бункер 42 выглядит заброшенным, но внутри вы находите следы недавней активности. " +
+                  "Здесь может быть опасно, но и награда может быть велика.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Исследовать", (16, -10, 0) },
+                { "Вернуться", (0, 0, 0) }
+            }
+        });
+
+        Scenes.Add(16, new Scene
+        {
+            Text = "Внутри бункера вы находите ценные артефакты и документы. " +
+                  "Но также сталкиваетесь с опасными мутантами.",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Собрать находки", (0, -20, 200) },
+                { "Убежать", (0, -10, 0) }
+            }
+        });
     }
 
-    private void StartNewGame()
+    public void StartNewGame()
     {
-        Money = 50;
-        Health = 100;
-        ShownScenes = new HashSet<int>();
-        IsChoosingLocation = true;
         IsInMainMenu = false;
-
-        // Добавляем сцену выбора локации к существующим сценам
-        Scenes[0] = new Scene { Text = "Выберите следующую локацию:",
-            Choices = new Dictionary<string, int>() };
-
-        // Добавляем остальные сцены
-        Scenes[1] = new Scene { Text = "Ты — житель Комплекса 17. Система фильтрации воздуха выходит из строя, и тебе нужно найти запасные детали. Ты решаешь обратиться к инженеру комплекса.",
-            Choices = new Dictionary<string, int> { { "Поговорить с инженером", 2 } } };
-
-        Scenes[2] = new Scene { Text = "Инженер объясняет, что нужны специальные детали, которые можно найти только на поверхности. Он даёт тебе 50 кредитов и карту местности.",
-            Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } };
-
-        Scenes[3] = new Scene { Text = "Ты выбрался наружу. Вокруг заброшенные здания и пустынная дорога. Вдалеке виднеется старая ремонтная станция и разрушенный город.",
-            Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } };
-
-        Scenes[4] = new Scene { Text = "На пути в город ты встречаешь группу выживших. Они требуют 20 кредитов за проход. Что делать?",
-            Choices = new Dictionary<string, int> { 
-                { "Заплатить (20 кредитов)", 5 }, 
-                { "Попытаться убежать (-30 здоровья)", 6 } 
-            } };
-
-        Scenes[5] = new Scene { Text = "Ты заплатил за проход. Выжившие пропустили тебя без лишних проблем. В городе ты находишь несколько полезных деталей.",
-            Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } };
-
-        Scenes[6] = new Scene { Text = "Ты получил несколько ранений, но сумел сбежать. В городе ты находишь несколько полезных деталей.",
-            Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } };
-
-        Scenes[7] = new Scene { Text = "На ремонтной станции ты встречаешь старого механика. Он предлагает тебе сделку.",
-            Choices = new Dictionary<string, int> { 
-                { "Купить медпак (30 кредитов, +50 здоровья)", 8 }, 
-                { "Обыскать станцию", 9 } 
-            } };
-
-        Scenes[8] = new Scene { Text = "Ты купил медпак и восстановил здоровье. Механик также даёт тебе подсказку о местоположении нужных деталей.",
-            Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } };
-
-        Scenes[9] = new Scene { Text = "Ты нашёл 20 кредитов среди обломков. Механик, заметив твои действия, предлагает купить у него информацию о деталях.",
-            Choices = new Dictionary<string, int> { { "Выбрать следующую локацию", 0 } } };
-
-        // Инициализация локаций
-        Locations = new Dictionary<string, Location>
-        {
-            { "complex", new Location("complex", "Комплекс 17", "Твой дом, подземный комплекс с системой фильтрации воздуха.", "Images/complex_hall.jpeg", 1) },
-            { "engineer", new Location("engineer", "Комната инженера", "Техническое помещение с оборудованием для ремонта.", "Images/engineer_room.jpeg", 2) },
-            { "surface", new Location("surface", "Поверхность", "Заброшенная поверхность с разрушенными зданиями.", "Images/desert_ruins.jpeg", 3) },
-            { "city", new Location("city", "Город", "Разрушенный город, где живут выжившие.", "Images/survivors_group.jpeg", 4) },
-            { "station", new Location("station", "Ремонтная станция", "Старая станция с медицинским оборудованием.", "Images/repair_station.jpeg", 7) }
-        };
-
-        // Добавляем связи между локациями
-        Locations["complex"].AddConnection("engineer");
-        Locations["engineer"].AddConnection("surface");
-        Locations["surface"].AddConnection("city");
-        Locations["surface"].AddConnection("station");
-        Locations["city"].AddConnection("surface");
-        Locations["station"].AddConnection("surface");
-
-        // Начинаем в комплексе
-        CurrentLocationId = "complex";
-        CurrentEventSceneId = Locations["complex"].EventSceneId;
-    }
-
-    public Location? GetCurrentLocation() => IsInMainMenu ? null : Locations[CurrentLocationId];
-    
-    public Scene GetCurrentScene()
-    {
-        if (CurrentEventSceneId.HasValue)
-        {
-            return Scenes[CurrentEventSceneId.Value];
-        }
-        // Если нет текущей сцены, возвращаем сцену выбора локации
-        return Scenes[0];
-    }
-
-    public bool CanTravelTo(string locationId)
-    {
-        if (IsInMainMenu) return false;
-        var currentLocation = GetCurrentLocation();
-        return currentLocation != null && currentLocation.CanTravelTo(locationId);
-    }
-
-    public void TravelToLocation(string locationId)
-    {
-        if (CanTravelTo(locationId))
-        {
-            CurrentLocationId = locationId;
-            var location = Locations[locationId];
-            
-            // Показываем событие только если оно еще не было показано
-            if (!ShownScenes.Contains(location.EventSceneId ?? 0))
-            {
-                CurrentEventSceneId = location.EventSceneId;
-                IsChoosingLocation = false;
-            }
-            else
-            {
-                // Если событие уже было показано, сразу показываем выбор локации
-                IsChoosingLocation = true;
-                CurrentEventSceneId = null;
-            }
-        }
+        ShouldExit = false;
+        IsChoosingLocation = false;
+        Health = 100;
+        Money = 0;
+        CurrentLocationId = "complex17";
+        CurrentEventSceneId = 0;
+        ShownScenes.Clear();
     }
 
     public void MakeChoice(string choice)
     {
         var currentScene = GetCurrentScene();
-        if (currentScene.Choices.TryGetValue(choice, out int nextScene))
+        if (currentScene.Choices.TryGetValue(choice, out var result))
         {
-            if (IsInMainMenu)
-            {
-                switch (nextScene)
-                {
-                    case -2: // Новая игра
-                        StartNewGame();
-                        return;
-                    case -3: // Выход
-                        ShouldExit = true;
-                        return;
-                }
-            }
+            Health = Math.Max(0, Math.Min(100, Health + result.healthChange));
+            Money += result.moneyChange;
 
-            // Обработка последствий выбора
-            if (choice == "Заплатить (20 кредитов)") Money -= 20;
-            if (choice == "Попытаться убежать (-30 здоровья)") Health -= 30;
-            if (choice == "Купить медпак (30 кредитов, +50 здоровья)")
+            if (result.nextSceneId == 0)
             {
-                Money -= 30;
-                Health += 50;
-            }
-            if (choice == "Обыскать станцию") Money += 20;
-
-            // Если это выбор локации или последний выбор в сцене
-            if (nextScene == 0)
-            {
-                // Отмечаем, что текущая сцена была показана
-                if (CurrentEventSceneId.HasValue)
-                {
-                    ShownScenes.Add(CurrentEventSceneId.Value);
-                }
                 IsChoosingLocation = true;
-                CurrentEventSceneId = null;
             }
             else
             {
-                CurrentEventSceneId = nextScene;
+                CurrentEventSceneId = result.nextSceneId;
             }
         }
+    }
+
+    public void TravelToLocation(string locationId)
+    {
+        if (Locations.TryGetValue(locationId, out var location))
+        {
+            CurrentLocationId = locationId;
+            IsChoosingLocation = false;
+
+            // Устанавливаем начальную сцену для локации
+            switch (locationId)
+            {
+                case "lasvegas":
+                    CurrentEventSceneId = 1;
+                    break;
+                case "sanfrancisco":
+                    CurrentEventSceneId = 5;
+                    break;
+                case "repair_station":
+                    CurrentEventSceneId = 9;
+                    break;
+                case "trading_post":
+                    CurrentEventSceneId = 12;
+                    break;
+                case "bunker42":
+                    CurrentEventSceneId = 15;
+                    break;
+                default:
+                    CurrentEventSceneId = 0;
+                    break;
+            }
+        }
+    }
+
+    public bool CanTravelTo(string locationId)
+    {
+        if (CurrentLocationId == "surface")
+        {
+            return true;
+        }
+
+        return Locations.TryGetValue(CurrentLocationId, out var currentLocation) &&
+               currentLocation.ConnectedLocations.Contains(locationId);
+    }
+
+    public Location? GetCurrentLocation()
+    {
+        return Locations.TryGetValue(CurrentLocationId, out var location) ? location : null;
+    }
+
+    public Scene GetCurrentScene()
+    {
+        return Scenes.TryGetValue(CurrentEventSceneId, out var scene) ? scene : Scenes[0];
+    }
+
+    public void ExitGame()
+    {
+        ShouldExit = true;
     }
 }
