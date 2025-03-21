@@ -105,13 +105,10 @@ public class Game
             }
         });
 
-        // Экран смерти
+        // Экран смерти (текст будет создаваться динамически)
         Scenes.Add(-4, new Scene
         {
-            Text = "GAME OVER\n\nВы погибли в пустоши...\n\nВаши достижения:\n" +
-                  $"Здоровье: {Health}\n" +
-                  $"Деньги: {Money}\n\n" +
-                  "Выберите действие:",
+            Text = "", // Пустой текст, будет заменен в GetCurrentScene
             Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
             {
                 { "Новая игра", (-2, 0, 0) },
@@ -429,7 +426,15 @@ public class Game
     {
         if (IsDead)
         {
-            return Scenes[-4];
+            // Создаем новый экземпляр сцены смерти с актуальными значениями
+            return new Scene
+            {
+                Text = "GAME OVER\n\nВы погибли в пустоши...\n\nВаши достижения:\n" +
+                      $"Здоровье: {Health}\n" +
+                      $"Деньги: {Money}\n\n" +
+                      "Выберите действие:",
+                Choices = Scenes[-4].Choices
+            };
         }
 
         if (IsInMainMenu)
