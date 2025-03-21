@@ -38,6 +38,17 @@ public class SceneManager
             }
         });
 
+        // Экран победы (текст будет создаваться динамически)
+        Scenes.Add(-5, new Scene
+        {
+            Text = "", // Пустой текст, будет заменен в GetCurrentScene
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Новая игра", (-2, 0, 0) },
+                { "Выход", (-3, 0, 0) }
+            }
+        });
+
         // Сцена выбора локации
         Scenes.Add(0, new Scene
         {
@@ -243,6 +254,20 @@ public class SceneManager
                   $"Деньги: {money}\n\n" +
                   "Выберите действие:",
             Choices = Scenes[-4].Choices
+        };
+    }
+
+    public Scene GetVictoryScene(int health, int money)
+    {
+        return new Scene
+        {
+            Text = "ПОБЕДА!\n\n" +
+                  "Поздравляем! Вы накопили достаточно денег, чтобы начать новую жизнь в безопасном месте.\n\n" +
+                  "Ваши достижения:\n" +
+                  $"Здоровье: {health}\n" +
+                  $"Деньги: {money}\n\n" +
+                  "Выберите действие:",
+            Choices = Scenes[-5].Choices
         };
     }
 

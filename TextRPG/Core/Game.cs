@@ -1,5 +1,8 @@
 ﻿#nullable enable
 
+using System.Collections.Generic;
+using System.Linq;
+
 namespace TextRPG.Core;
 
 public class Game
@@ -8,11 +11,14 @@ public class Game
     public bool ShouldExit { get; private set; }
     public bool IsChoosingLocation { get; private set; }
     public bool IsDead { get; private set; }
+    public bool IsVictory { get; private set; }
     public int Health { get; private set; }
     public int Money { get; private set; }
     public string CurrentLocationId { get; private set; } = string.Empty;
     public int CurrentEventSceneId { get; private set; }
     public IReadOnlyDictionary<string, Location> Locations => _locationManager.Locations;
+
+    private const int VictoryMoneyAmount = 1000; // Сумма денег для победы
 
     private readonly SceneManager _sceneManager;
     private readonly LocationManager _locationManager;
@@ -23,6 +29,7 @@ public class Game
         ShouldExit = false;
         IsChoosingLocation = false;
         IsDead = false;
+        IsVictory = false;
         Health = 100;
         Money = 0;
         CurrentLocationId = string.Empty;
@@ -38,6 +45,7 @@ public class Game
         ShouldExit = false;
         IsChoosingLocation = false;
         IsDead = false;
+        IsVictory = false;
         Health = 100;
         Money = 0;
         CurrentLocationId = "complex17";
@@ -61,7 +69,7 @@ public class Game
 
         if (currentScene.Choices.TryGetValue(choice, out var result))
         {
-            if (IsInMainMenu || IsDead)
+            if (IsInMainMenu || IsDead || IsVictory)
             {
                 switch (result.nextSceneId)
                 {
@@ -82,6 +90,14 @@ public class Game
             {
                 IsDead = true;
                 CurrentEventSceneId = -4;
+                return;
+            }
+
+            // Проверяем победу
+            if (Money >= VictoryMoneyAmount)
+            {
+                IsVictory = true;
+                CurrentEventSceneId = -5;
                 return;
             }
 
@@ -118,6 +134,11 @@ public class Game
 
     public Scene GetCurrentScene()
     {
+        if (IsVictory)
+        {
+            return _sceneManager.GetVictoryScene(Health, Money);
+        }
+
         if (IsDead)
         {
             return _sceneManager.GetDeathScene(Health, Money);
