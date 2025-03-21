@@ -3,19 +3,23 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
-using System.Media;
+using NAudio.Wave;
+using System.IO;
 using TextRPG.Core;
 
 namespace TextRPG
 {
     public partial class MainWindow : Window
     {
-        private Game game;
+        private readonly Game game;
+        private WaveOutEvent? outputDevice;
+        private AudioFileReader? audioFile;
 
         public MainWindow()
         {
             InitializeComponent();
             game = new Game();
+            PlayBackgroundMusic("Sounds/wasteland.mp3");
             UpdateUI();
         }
 
@@ -54,13 +58,13 @@ namespace TextRPG
             }
             else
             {
-                txtLocationName.Text = currentLocation!.Name;
-                txtLocationDescription.Text = currentLocation.Description;
+                txtLocationName.Text = currentLocation?.Name ?? string.Empty;
+                txtLocationDescription.Text = currentLocation?.Description ?? string.Empty;
 
                 // Обновляем фоновое изображение
                 try
                 {
-                    backgroundImage.ImageSource = new BitmapImage(new Uri(currentLocation.ImagePath, UriKind.Relative));
+                    backgroundImage.ImageSource = new BitmapImage(new Uri(currentLocation?.ImagePath ?? string.Empty, UriKind.Relative));
                 }
                 catch
                 {
@@ -116,6 +120,35 @@ namespace TextRPG
             }
         }
 
+        private void PlayBackgroundMusic(string filePath)
+        {
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    MessageBox.Show($"Файл {filePath} не найден!");
+                    return;
+                }
+
+                outputDevice = new WaveOutEvent();
+                audioFile = new AudioFileReader(filePath);
+                outputDevice.Init(audioFile);
+                outputDevice.Volume = 0.1f;
+                outputDevice.Play();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка воспроизведения: {ex.Message}");
+            }
+        }
+
+        private void StopMusic()
+        {
+            outputDevice?.Stop();
+            outputDevice?.Dispose();
+            audioFile?.Dispose();
+        }
+
         private void LocationButton_Click(string locationId)
         {
             game.TravelToLocation(locationId);
@@ -126,6 +159,12 @@ namespace TextRPG
         {
             game.MakeChoice(choice);
             UpdateUI();
+        }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            base.OnClosing(e);
+            StopMusic();
         }
     }
 }
