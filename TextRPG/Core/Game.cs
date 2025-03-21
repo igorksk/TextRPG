@@ -10,6 +10,7 @@ public class Game
     public bool IsInMainMenu { get; private set; }
     public bool ShouldExit { get; private set; }
     public bool IsChoosingLocation { get; private set; }
+    public bool IsDead { get; private set; }
     public int Health { get; private set; }
     public int Money { get; private set; }
     public string CurrentLocationId { get; private set; } = string.Empty;
@@ -23,6 +24,7 @@ public class Game
         IsInMainMenu = true;
         ShouldExit = false;
         IsChoosingLocation = false;
+        IsDead = false;
         Health = 100;
         Money = 0;
         CurrentLocationId = string.Empty;
@@ -96,6 +98,20 @@ public class Game
         Scenes.Add(-1, new Scene
         {
             Text = "Текстовая RPG\n\nДобро пожаловать в игру!\nВыберите действие:",
+            Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+            {
+                { "Новая игра", (-2, 0, 0) },
+                { "Выход", (-3, 0, 0) }
+            }
+        });
+
+        // Экран смерти
+        Scenes.Add(-4, new Scene
+        {
+            Text = "GAME OVER\n\nВы погибли в пустоши...\n\nВаши достижения:\n" +
+                  $"Здоровье: {Health}\n" +
+                  $"Деньги: {Money}\n\n" +
+                  "Выберите действие:",
             Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
             {
                 { "Новая игра", (-2, 0, 0) },
@@ -302,6 +318,7 @@ public class Game
         IsInMainMenu = false;
         ShouldExit = false;
         IsChoosingLocation = false;
+        IsDead = false;
         Health = 100;
         Money = 0;
         CurrentLocationId = "complex17";
@@ -325,7 +342,7 @@ public class Game
 
         if (currentScene.Choices.TryGetValue(choice, out var result))
         {
-            if (IsInMainMenu)
+            if (IsInMainMenu || IsDead)
             {
                 switch (result.nextSceneId)
                 {
@@ -340,6 +357,14 @@ public class Game
 
             Health = Math.Max(0, Math.Min(100, Health + result.healthChange));
             Money += result.moneyChange;
+
+            // Проверяем смерть
+            if (Health <= 0)
+            {
+                IsDead = true;
+                CurrentEventSceneId = -4;
+                return;
+            }
 
             if (result.nextSceneId == 0)
             {
@@ -402,6 +427,11 @@ public class Game
 
     public Scene GetCurrentScene()
     {
+        if (IsDead)
+        {
+            return Scenes[-4];
+        }
+
         if (IsInMainMenu)
         {
             return Scenes[-1];
