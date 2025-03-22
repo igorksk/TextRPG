@@ -1,5 +1,8 @@
 #nullable enable
 
+using System.Collections.Generic;
+using System.Linq;
+
 namespace TextRPG.Core;
 
 public class SceneManager
@@ -282,13 +285,14 @@ public class SceneManager
         };
     }
 
-    public static Scene GetLocationSelectionScene(IEnumerable<Location> availableLocations)
+    public Scene GetLocationSelectionScene(IEnumerable<Location> availableLocations)
     {
         var choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>();
         foreach (var location in availableLocations)
         {
             choices[location.Name] = (0, 0, 0);
         }
+        choices["Посмотреть квесты"] = (-7, 0, 0);
 
         return new Scene
         {
@@ -299,7 +303,26 @@ public class SceneManager
 
     public Scene GetScene(int sceneId)
     {
-        return Scenes.TryGetValue(sceneId, out var scene) ? scene : Scenes[0];
+        if (!Scenes.TryGetValue(sceneId, out var scene))
+        {
+            scene = Scenes[0];
+        }
+
+        // Добавляем опцию просмотра квестов во все игровые сцены
+        if (sceneId >= 0) // Не добавляем в системные сцены (меню, смерть, победа)
+        {
+            var choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>(scene.Choices)
+            {
+                { "Посмотреть квесты", (-7, 0, 0) }
+            };
+            return new Scene
+            {
+                Text = scene.Text,
+                Choices = choices
+            };
+        }
+
+        return scene;
     }
 
     public void MarkSceneAsShown(int sceneId)

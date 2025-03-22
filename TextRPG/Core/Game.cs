@@ -12,6 +12,7 @@ public class Game
     public bool IsChoosingLocation { get; private set; }
     public bool IsDead { get; private set; }
     public bool IsVictory { get; private set; }
+    public bool IsViewingQuests { get; private set; }
     public int Health { get; private set; }
     public int Money { get; private set; }
     public string CurrentLocationId { get; private set; } = string.Empty;
@@ -22,6 +23,7 @@ public class Game
 
     private readonly SceneManager _sceneManager;
     private readonly LocationManager _locationManager;
+    private readonly QuestManager _questManager;
 
     public Game()
     {
@@ -30,6 +32,7 @@ public class Game
         IsChoosingLocation = false;
         IsDead = false;
         IsVictory = false;
+        IsViewingQuests = false;
         Health = 100;
         Money = 0;
         CurrentLocationId = string.Empty;
@@ -37,6 +40,7 @@ public class Game
 
         _sceneManager = new SceneManager();
         _locationManager = new LocationManager();
+        _questManager = new QuestManager();
     }
 
     public void StartNewGame()
@@ -46,11 +50,13 @@ public class Game
         IsChoosingLocation = false;
         IsDead = false;
         IsVictory = false;
+        IsViewingQuests = false;
         Health = 100;
         Money = 0;
         CurrentLocationId = "complex17";
         CurrentEventSceneId = 0;
         _sceneManager.ClearShownScenes();
+        _questManager.Reset();
     }
 
     public void MakeChoice(string choice)
@@ -65,6 +71,15 @@ public class Game
                 TravelToLocation(choice);
             }
             return;
+        }
+
+        if (IsViewingQuests)
+        {
+            if (choice == "Вернуться")
+            {
+                IsViewingQuests = false;
+                return;
+            }
         }
 
         if (currentScene.Choices.TryGetValue(choice, out var result))
@@ -92,6 +107,9 @@ public class Game
 
             Health = Math.Max(0, Math.Min(100, Health + result.healthChange));
             Money += result.moneyChange;
+
+            // Проверяем прогресс квестов
+            _questManager.CheckQuestProgress(CurrentLocationId, Money);
 
             // Проверяем смерть
             if (Health <= 0)
@@ -140,8 +158,41 @@ public class Game
         return _locationManager.GetLocation(CurrentLocationId);
     }
 
+    public void ViewQuests()
+    {
+        IsViewingQuests = true;
+    }
+
     public Scene GetCurrentScene()
     {
+        if (IsViewingQuests)
+        {
+            var quests = _questManager.GetAllQuests();
+            var questText = "Список квестов:\n\n";
+            
+            foreach (var quest in quests)
+            {
+                var status = quest.IsCompleted ? "[Выполнен]" : "[Активен]";
+                var type = quest.IsMainQuest ? "[Главный]" : "[Второстепенный]";
+                questText += $"{type} {status} {quest.Name}\n";
+                questText += $"Описание: {quest.Description}\n";
+                if (quest.RequiredMoney > 0)
+                {
+                    questText += $"Требуется денег: {quest.RequiredMoney}\n";
+                }
+                questText += $"Награда: {quest.RewardMoney} монет\n\n";
+            }
+
+            return new Scene
+            {
+                Text = questText,
+                Choices = new Dictionary<string, (int nextSceneId, int healthChange, int moneyChange)>
+                {
+                    { "Вернуться", (CurrentEventSceneId, 0, 0) }
+                }
+            };
+        }
+
         if (IsVictory)
         {
             return _sceneManager.GetVictoryScene(Health, Money);
@@ -160,7 +211,7 @@ public class Game
         if (IsChoosingLocation)
         {
             var availableLocations = _locationManager.GetAvailableLocations(CurrentLocationId);
-            return SceneManager.GetLocationSelectionScene(availableLocations);
+            return _sceneManager.GetLocationSelectionScene(availableLocations);
         }
 
         return _sceneManager.GetScene(CurrentEventSceneId);
