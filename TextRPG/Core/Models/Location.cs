@@ -1,8 +1,6 @@
 #nullable enable
 
-using System.Collections.Generic;
-
-namespace TextRPG.Core;
+namespace TextRPG.Core.Models;
 
 public class Location
 {
@@ -33,4 +31,4 @@ public class Location
     {
         return ConnectedLocations.Contains(locationId);
     }
-} 
+}

@@ -1,5 +1,7 @@
 #nullable enable
 
+using TextRPG.Core.Models;
+
 namespace TextRPG.Core;
 
 public class LocationManager

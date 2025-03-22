@@ -1,6 +1,6 @@
 #nullable enable
 
-namespace TextRPG.Core;
+namespace TextRPG.Core.Models;
 
 public class Quest
 {
@@ -9,8 +9,8 @@ public class Quest
     public string Description { get; }
     public bool IsMainQuest { get; }
     public bool IsCompleted { get; private set; }
-    public int RewardMoney { get; }
     public int RequiredMoney { get; }
+    public int RewardMoney { get; }
 
     public Quest(string id, string name, string description, bool isMainQuest, int rewardMoney, int requiredMoney = 0)
     {
@@ -18,9 +18,9 @@ public class Quest
         Name = name;
         Description = description;
         IsMainQuest = isMainQuest;
-        IsCompleted = false;
-        RewardMoney = rewardMoney;
         RequiredMoney = requiredMoney;
+        RewardMoney = rewardMoney;
+        IsCompleted = false;
     }
 
     public void Complete()
