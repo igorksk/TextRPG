@@ -8,10 +8,12 @@ namespace TextRPG.Core;
 public class QuestManager
 {
     private readonly Dictionary<string, Quest> _quests;
+    private readonly List<string> _completedQuestNotifications;
 
     public QuestManager()
     {
         _quests = new Dictionary<string, Quest>();
+        _completedQuestNotifications = new List<string>();
         InitializeQuests();
     }
 
@@ -63,6 +65,7 @@ public class QuestManager
         if (!mainQuest.IsCompleted && money >= mainQuest.RequiredMoney)
         {
             mainQuest.Complete();
+            _completedQuestNotifications.Add($"Выполнен главный квест \"{mainQuest.Name}\"! Получена награда {mainQuest.RewardMoney} монет.");
         }
 
         // Проверяем квест казино
@@ -70,6 +73,7 @@ public class QuestManager
         if (!vegasQuest.IsCompleted && locationId == "lasvegas" && money >= vegasQuest.RequiredMoney)
         {
             vegasQuest.Complete();
+            _completedQuestNotifications.Add($"Выполнен квест \"{vegasQuest.Name}\"! Получена награда {vegasQuest.RewardMoney} монет.");
         }
 
         // Проверяем квест бункера
@@ -77,7 +81,15 @@ public class QuestManager
         if (!bunkerQuest.IsCompleted && locationId == "bunker42")
         {
             bunkerQuest.Complete();
+            _completedQuestNotifications.Add($"Выполнен квест \"{bunkerQuest.Name}\"! Получена награда {bunkerQuest.RewardMoney} монет.");
         }
+    }
+
+    public IEnumerable<string> GetAndClearCompletedQuestNotifications()
+    {
+        var notifications = _completedQuestNotifications.ToList();
+        _completedQuestNotifications.Clear();
+        return notifications;
     }
 
     public int GetQuestReward(string questId)
@@ -92,6 +104,7 @@ public class QuestManager
     public void Reset()
     {
         _quests.Clear();
+        _completedQuestNotifications.Clear();
         InitializeQuests();
     }
 } 

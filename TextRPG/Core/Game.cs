@@ -65,6 +65,12 @@ public class Game
         
         if (IsChoosingLocation)
         {
+            if (choice == "Посмотреть квесты")
+            {
+                IsViewingQuests = true;
+                return;
+            }
+
             // Если мы в режиме выбора локации, обрабатываем выбор локации
             if (_locationManager.GetLocation(choice) != null)
             {
@@ -95,6 +101,12 @@ public class Game
                         ShouldExit = true;
                         return;
                 }
+            }
+
+            if (choice == "Посмотреть квесты")
+            {
+                IsViewingQuests = true;
+                return;
             }
 
             // Проверяем, достаточно ли денег для действия
@@ -214,7 +226,21 @@ public class Game
             return _sceneManager.GetLocationSelectionScene(availableLocations);
         }
 
-        return _sceneManager.GetScene(CurrentEventSceneId);
+        var scene = _sceneManager.GetScene(CurrentEventSceneId);
+
+        // Проверяем, есть ли уведомления о выполненных квестах
+        var questNotifications = _questManager.GetAndClearCompletedQuestNotifications();
+        if (questNotifications.Any())
+        {
+            var notificationText = string.Join("\n", questNotifications);
+            return new Scene
+            {
+                Text = $"{notificationText}\n\n{scene.Text}",
+                Choices = scene.Choices
+            };
+        }
+
+        return scene;
     }
 
     public void ExitGame()
